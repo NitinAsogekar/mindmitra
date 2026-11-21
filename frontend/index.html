@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MindMitra - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script>
+localStorage.removeItem('mm_theme');
+document.documentElement.removeAttribute('data-theme');
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+html,body{background:#fff !important;color:#222 !important}
+body{display:flex;min-height:100vh}
+.left{flex:1;background:linear-gradient(135deg,#667eea,#764ba2) !important;color:#fff !important;padding:50px;display:flex;flex-direction:column;justify-content:center}
+.left h1{font-size:38px;line-height:1.2;margin:15px 0;color:#fff !important}
+.left p{opacity:.9;font-size:15px;color:#fff !important}
+.right{flex:1;display:flex;align-items:center;justify-content:center;background:#fff !important}
+.box{width:90%;max-width:360px;background:#fff !important;padding:10px}
+.box h2{font-size:26px;margin-bottom:5px;color:#222 !important}
+.box p{font-size:13px;color:#777 !important;margin-bottom:20px}
+.tabs{display:flex;background:#f0f0f0 !important;border-radius:10px;padding:3px;margin-bottom:20px}
+.tab{flex:1;text-align:center;padding:9px;border-radius:8px;cursor:pointer;font-size:14px;color:#555 !important}
+.tab.active{background:#fff !important;box-shadow:0 2px 8px rgba(0,0,0,.1);color:#667eea !important;font-weight:600}
+input{width:100%;padding:12px;border:1.5px solid #e0e0e0 !important;border-radius:10px;margin:8px 0;outline:none;background:#fff !important;color:#222 !important}
+input:focus{border-color:#667eea !important}
+.btn{width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2) !important;color:#fff !important;border:none;border-radius:10px;margin-top:10px;font-weight:600;cursor:pointer}
+.hide{display:none}
+@media(max-width:700px){body{flex-direction:column}.left{padding:30px}}
+</style>
+</head>
+<body>
+<div class="left">
+<h2>MindMitra 🧠</h2>
+<h1>Your mind matters.<br>We're here to listen.</h1>
+<p>10,000+ users - mood tracking, therapists, meditation & community.</p>
+<p style="margin-top:30px;font-size:13px;opacity:.7">Demo Login: demo@mind.com / 123456</p>
+</div>
+<div class="right">
+<div class="box">
+<h2 id="head">Welcome back</h2>
+<p id="sub">Login to continue</p>
+<div class="tabs">
+<div class="tab active" id="t1" onclick="tab('login')">Login</div>
+<div class="tab" id="t2" onclick="tab('signup')">Sign Up</div>
+</div>
+<div id="login">
+<input id="lEmail" type="email" placeholder="Email - demo@mind.com" value="demo@mind.com">
+<input id="lPass" type="password" placeholder="Password - 123456" value="123456">
+<button class="btn" onclick="login()">Login →</button>
+</div>
+<div id="signup" class="hide">
+<input id="sName" type="text" placeholder="Full Name">
+<input id="sEmail" type="email" placeholder="Email">
+<input id="sPass" type="password" placeholder="Password (min 6)">
+<button class="btn" onclick="signup()">Create Account →</button>
+</div>
+</div>
+</div>
+<script>
+function tab(type){
+ if(type=='login'){
+  document.getElementById('login').classList.remove('hide');
+  document.getElementById('signup').classList.add('hide');
+  document.getElementById('t1').classList.add('active');
+  document.getElementById('t2').classList.remove('active');
+  document.getElementById('head').innerText='Welcome back';
+  document.getElementById('sub').innerText='Login to continue';
+ }else{
+  document.getElementById('signup').classList.remove('hide');
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('t2').classList.add('active');
+  document.getElementById('t1').classList.remove('active');
+  document.getElementById('head').innerText='Create account';
+  document.getElementById('sub').innerText='Start your journey';
+ }
+}
+
+async function signup(){
+ let name=document.getElementById('sName').value.trim();
+ let email=document.getElementById('sEmail').value.trim();
+ let pass=document.getElementById('sPass').value.trim();
+ if(name.length<2||!email.includes('@')||pass.length<6){alert('Fill all fields correctly');return;}
+
+ // Save to XAMPP SQL via backend
+ try{
+  const res = await fetch('http://localhost:3000/api/signup', {
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body: JSON.stringify({name, email, password: pass})
+  });
+  const data = await res.json();
+  if(data.success){
+    // also save local for UI
+    let users=JSON.parse(localStorage.getItem('mm_users')||'[]');
+    if(!users.find(u=>u.email==email)){
+      users.push({username:name,email,pass});
+      localStorage.setItem('mm_users',JSON.stringify(users));
+    }
+    alert('✅ Account created  (users table)!');
+    tab('login');
+  }
+ }catch(err){
+  alert('❌ Backend not running. Start: node index.js in backend folder');
+  console.log(err);
+ }
+}
+
+async function login(){
+ let email=document.getElementById('lEmail').value.trim();
+ let pass=document.getElementById('lPass').value.trim();
+
+ // 1. Try SQL login
+ try{
+  const res = await fetch('http://localhost:3000/api/login', {
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body: JSON.stringify({email, password: pass})
+  });
+  const data = await res.json();
+  if(data.success){
+    let userName = data.user.name || data.user.username || 'Demo User';
+    localStorage.setItem('mm_currentUser',JSON.stringify({username:userName,email}));
+    localStorage.setItem('mm_userEmail',email);
+    localStorage.setItem('mm_userName',userName);
+    localStorage.setItem('username',userName);
+    window.location.href='dashboard.html';
+    return;
+  }
+ }catch(e){
+  console.log('SQL login failed, trying local', e);
+ }
+
+ // 2. Fallback localStorage + demo
+ let users=JSON.parse(localStorage.getItem('mm_users')||'[]');
+ let ok=users.find(u=>u.email==email&&u.pass==pass);
+ let demo=(email=='demo@mind.com'&&pass=='123456');
+ if(!ok&&!demo){alert('Wrong email/pass. Use demo@mind.com / 123456');return;}
+ let finalUser = ok || {username:'Demo User',email};
+ localStorage.setItem('mm_currentUser',JSON.stringify(finalUser));
+ localStorage.setItem('mm_userEmail',email);
+ localStorage.setItem('mm_userName',finalUser.username);
+ localStorage.setItem('username',finalUser.username);
+ window.location.href='dashboard.html';
+}
+</script>
+</body>
+</html>

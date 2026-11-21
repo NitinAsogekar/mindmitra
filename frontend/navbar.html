@@ -1,0 +1,57 @@
+<div class="navbar">
+  <div class="nav-logo" onclick="location.href='dashboard.html'">🧠 MindMitra</div>
+  <div class="nav-links" id="navLinks">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="mood-tracker.html">😊 Mood</a>
+    <a href="face-detection.html">📷 Face Scan</a>
+    <a href="journal.html">📔 Journal</a>
+    <a href="meditation.html">🧘 Meditation</a>
+    <a href="music-therapy.html">🎵 Music</a>
+    <a href="breathing.html">🌬️ Breathing</a>
+    <a href="assessment.html">📝 Assessment</a>
+    <a href="chatbot.html">🤖 AI Chat</a>
+    <a href="progress-report.html">📊 Report</a>
+    <a href="therapist.html">👩‍⚕️ Therapist</a>
+    <a href="community.html">💬 Community</a>
+    <a href="appointment.html">📅 Appointments</a>
+    <a href="profile.html">👤 Profile</a>
+  </div>
+  <div class="nav-right">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    <a href="profile.html" class="nav-avatar" id="navAvatar">U</a>
+  </div>
+</div>
+
+<style>
+html,body{background:#f5f7fb !important;color:#222 !important}
+.navbar{max-width:1100px;margin:0 auto 20px;background:#fff !important;padding:12px 18px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center;position:sticky;top:10px;z-index:50}
+.nav-logo{font-weight:700;color:#667eea;cursor:pointer;font-size:15px}
+.nav-links{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.nav-links a{text-decoration:none;color:#555;font-size:11px;font-weight:500;padding:6px 10px;border-radius:20px;transition:.2s;white-space:nowrap}
+.nav-links a:hover{background:#eef0ff;color:#667eea}
+.nav-links a.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff !important}
+.nav-right{display:flex;gap:10px;align-items:center}
+.nav-avatar{width:32px;height:32px;background:#667eea;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;text-decoration:none}
+.menu-btn{display:none;background:none;border:none;font-size:18px;cursor:pointer;color:#222}
+@media(max-width:1100px){
+ .nav-links{display:none;position:absolute;top:55px;left:20px;right:20px;background:#fff !important;padding:12px;border-radius:12px;flex-direction:column;align-items:stretch;box-shadow:0 10px 25px rgba(0,0,0,.1);z-index:99;max-height:80vh;overflow-y:auto}
+ .nav-links.open{display:flex}
+ .nav-links a{padding:10px 14px;font-size:13px}
+ .menu-btn{display:block}
+}
+</style>
+
+<script>
+function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
+(function(){
+  let page = location.pathname.split('/').pop() || 'dashboard.html';
+  document.querySelectorAll('.nav-links a').forEach(a=>{
+    if(a.getAttribute('href')===page) a.classList.add('active');
+  });
+  let name = localStorage.getItem('mm_userName') || localStorage.getItem('username') || 'U';
+  let av = document.getElementById('navAvatar');
+  if(av) av.innerText = name.charAt(0).toUpperCase();
+  localStorage.removeItem('mm_theme');
+  document.documentElement.removeAttribute('data-theme');
+})();
+</script>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Assessment - MindMitra</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+body{background:#f5f7fb;min-height:100vh;padding:20px}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:700px;margin:0 auto 20px}
+.top a{text-decoration:none;color:#667eea;font-weight:600}
+.card{max-width:700px;margin:0 auto;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 30px rgba(0,0,0,.06)}
+.h{font-size:22px;font-weight:600}
+.sub{font-size:13px;color:#777;margin:5px 0 20px}
+.q{margin:18px 0;padding:15px;background:#f9f9ff;border-radius:12px}
+.q p{font-size:14px;font-weight:500;margin-bottom:10px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{padding:7px 12px;border:1.5px solid #e0e0e0;border-radius:20px;font-size:12px;cursor:pointer;transition:.2s}
+.opt.selected{background:#667eea;color:#fff;border-color:#667eea}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:12px;font-weight:600;margin-top:20px;cursor:pointer}
+.result{margin-top:20px;padding:20px;border-radius:15px;display:none;text-align:center}
+.score{font-size:22px;font-weight:700;margin:10px 0}
+.badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="top"><a href="dashboard.html">← Dashboard</a><span style="font-weight:600">Assessment</span><a href="progress-report.html">Report →</a></div>
+
+<div class="card">
+<div class="h">Mental Health Assessment</div>
+<div class="sub">PHQ-9 (Depression) + GAD-7 (Anxiety) - 0=Not at all, 1=Several days, 2=More than half, 3=Nearly every day</div>
+<div id="questions"></div>
+<button class="btn" onclick="calculate()">Submit Assessment →</button>
+<div class="result" id="resultBox">
+<div style="font-size:14px;color:#555">Your Result</div>
+<div class="score" id="scoreText"></div>
+<div class="badge" id="badgeText"></div>
+<p id="advice" style="font-size:13px;color:#666;margin-top:12px;line-height:1.5"></p>
+<button class="btn" style="background:#111" onclick="location.href='therapist.html'">Find Therapist →</button>
+</div>
+</div>
+
+<script>
+const Q=[
+"Little interest or pleasure in doing things? (PHQ-9)",
+"Feeling down, depressed, or hopeless? (PHQ-9)",
+"Trouble falling or staying asleep, or sleeping too much? (PHQ-9)",
+"Feeling tired or having little energy? (PHQ-9)",
+"Poor appetite or overeating? (PHQ-9)",
+"Feeling bad about yourself or that you are a failure? (PHQ-9)",
+"Trouble concentrating on things? (PHQ-9)",
+"Moving or speaking slowly or being fidgety/restless? (PHQ-9)",
+"Thoughts that you would be better off dead or hurting yourself? (PHQ-9)",
+"Feeling nervous, anxious, or on edge? (GAD-7)",
+"Not being able to stop or control worrying? (GAD-7)",
+"Worrying too much about different things? (GAD-7)",
+"Trouble relaxing? (GAD-7)",
+"Being so restless that it's hard to sit still? (GAD-7)",
+"Becoming easily annoyed or irritable? (GAD-7)",
+"Feeling afraid as if something awful might happen? (GAD-7)"
+];
+let ans=new Array(Q.length).fill(null);
+
+function render(){
+ let html='';
+ Q.forEach((q,i)=>{
+  html+=`<div class="q"><p>${i+1}. ${q}</p><div class="opts">
+   <div class="opt" id="q${i}-0" onclick="select(${i},0)">0 - Not at all</div>
+   <div class="opt" id="q${i}-1" onclick="select(${i},1)">1 - Several days</div>
+   <div class="opt" id="q${i}-2" onclick="select(${i},2)">2 - Half the days</div>
+   <div class="opt" id="q${i}-3" onclick="select(${i},3)">3 - Nearly daily</div>
+  </div></div>`;
+ });
+ document.getElementById('questions').innerHTML=html;
+}
+function select(qi,val){
+ ans[qi]=val;
+ for(let j=0;j<4;j++) document.getElementById(`q${qi}-${j}`).classList.remove('selected');
+ document.getElementById(`q${qi}-${val}`).classList.add('selected');
+}
+
+async function calculate(){
+ if(ans.includes(null)){alert('Please answer all 16 questions');return;}
+ let phq=ans.slice(0,9).reduce((a,b)=>a+b,0);
+ let gad=ans.slice(9,16).reduce((a,b)=>a+b,0);
+ let total=phq+gad;
+
+ let level='',color='',advice='';
+ if(total<=9){level='Minimal - Good';color='#00c853';advice='Your mental health looks good! Keep tracking mood daily and practice meditation.';}
+ else if(total<=19){level='Mild - Take Care';color='#ffab00';advice='Mild stress detected. Try daily journaling, meditation, and talk to our community.';}
+ else if(total<=29){level='Moderate - Need Support';color='#ff6d00';advice='Moderate symptoms. We recommend booking a therapist session and regular check-ins.';}
+ else{level='Severe - Seek Help';color='#ff1744';advice='High symptoms. Please book a therapist urgently. You are not alone, help is available.';}
+
+ let box=document.getElementById('resultBox');
+ box.style.display='block';
+ box.style.background=color+'15';
+ box.style.border=`2px solid ${color}30`;
+ document.getElementById('scoreText').innerText=`PHQ-9: ${phq}/27 | GAD-7: ${gad}/21 | Total: ${total}/48`;
+ document.getElementById('scoreText').style.color=color;
+ document.getElementById('badgeText').innerText=level;
+ document.getElementById('badgeText').style.background=color;
+ document.getElementById('badgeText').style.color='#fff';
+ document.getElementById('advice').innerText=advice;
+
+ let email=localStorage.getItem('mm_userEmail')||'demo@mind.com';
+ let localData={userEmail:email,phq_score:phq,gad_score:gad,phq_level:level,gad_level:level,total:total,date:new Date().toISOString()};
+ localStorage.setItem('mm_lastAssessment',JSON.stringify(localData));
+ let all=JSON.parse(localStorage.getItem('mm_assessments')||'[]');
+ all.push(localData);
+ localStorage.setItem('mm_assessments',JSON.stringify(all));
+ localStorage.setItem('phq_score', total);
+
+ let sqlPayloadPHQ = { email: email, type: 'PHQ-9', score: phq, level: level, answers: { phq, gad, total, ans: ans.slice(0,9) } };
+ let sqlPayloadGAD = { email: email, type: 'GAD-7', score: gad, level: level, answers: { phq, gad, total, ans: ans.slice(9,16) } };
+
+ try{
+  await fetch('http://localhost:3000/api/assessment',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sqlPayloadPHQ)});
+  await fetch('http://localhost:3000/api/assessment',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sqlPayloadGAD)});
+  document.getElementById('advice').innerText = advice + '\n\n✅ Saved in assessments ';
+ }catch(e){
+  document.getElementById('advice').innerText = advice + '\n\n⚠️ Saved locally, run node index.js';
+ }
+ box.scrollIntoView({behavior:'smooth'});
+}
+render();
+</script>
+</body>
+</html>

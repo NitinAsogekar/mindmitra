@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Community - MindMitra</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+:root{--bg:#f5f7fb;--card:#fff;--text:#222;--text2:#777;--border:#e8e8ec;--primary:#667eea}
+body{background:var(--bg);padding:20px;color:var(--text)}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto 20px;background:var(--card);padding:14px 20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.05)}
+.top a{text-decoration:none;color:var(--primary);font-weight:600;font-size:14px}
+.helpline{background:#fff3cd;border-left:4px solid #f0a500;padding:10px 14px;border-radius:8px;max-width:1100px;margin:0 auto 18px;font-size:11px;color:#664d03}
+.container{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr;gap:18px}
+@media(max-width:800px){.container{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 8px 25px rgba(0,0,0,.06)}
+.create textarea{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;resize:none;font-size:13px;outline:none}
+.tags{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.tag{font-size:11px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer}
+.tag.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn{padding:8px 18px;border:none;border-radius:20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+.post{margin-bottom:14px}
+.post-head{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+.post-meta h4{font-size:13px} .post-meta p{font-size:10px;color:var(--text2)}
+.post-text{font-size:13px;line-height:1.6;color:#444;margin:10px 0;white-space:pre-wrap}
+.post-actions{display:flex;gap:14px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.post-actions button{background:none;border:none;font-size:12px;color:var(--text2);cursor:pointer}
+.post-actions button.liked{color:#e74c3c;font-weight:600}
+.comment-box{margin-top:10px;display:none}
+.comment-box input{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;outline:none}
+.comments{margin-top:8px}
+.comment{font-size:12px;padding:6px 10px;background:var(--bg);border-radius:10px;margin-bottom:5px}
+.side h4{font-size:14px;margin-bottom:10px}
+.rule{font-size:11px;color:var(--text2);margin-bottom:8px;display:flex;gap:6px}
+.anon{font-size:10px;background:#eef0ff;color:#667eea;padding:2px 7px;border-radius:10px;margin-left:6px}
+</style>
+</head>
+<body>
+
+<div class="top">
+<a href="dashboard.html">← Dashboard</a>
+<h3 style="font-size:15px">Community 💬 - SQL Connected</h3>
+<a href="therapist.html">Find Therapist →</a>
+</div>
+
+<div class="helpline">⚠️ Peer support only. For emergency call <b>1800-599-0019</b>. Be kind, no bullying.</div>
+
+<div class="container">
+<div>
+<div class="card create">
+<h4 style="font-size:13px;margin-bottom:10px">Share Anonymously 🤫</h4>
+<textarea id="postText" rows="3" placeholder="How are you feeling today? (Anonymous)"></textarea>
+<div class="tags">
+<span class="tag active" data-tag="General">General</span>
+<span class="tag" data-tag="Exam Stress">Exam Stress</span>
+<span class="tag" data-tag="Anxiety">Anxiety</span>
+<span class="tag" data-tag="Motivation">Motivation</span>
+<span class="tag" data-tag="College Life">College Life</span>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+<label style="font-size:11px;color:#777"><input type="checkbox" id="isAnon" checked> Anonymous <span class="anon">🔒 Safe</span></label>
+<button class="btn" onclick="createPost()">Post  💬</button>
+</div>
+<p id="msg" style="font-size:11px;text-align:center;margin-top:8px;color:green"></p>
+</div>
+<div id="feed" style="margin-top:18px"></div>
+</div>
+
+<div>
+<div class="card side">
+<h4>🌟 Guidelines</h4>
+<div class="rule">✅ Be supportive and kind</div>
+<div class="rule">✅ No personal info</div>
+<div class="rule">❌ NOT crisis help - call Kiran</div>
+</div>
+<div class="card side" style="margin-top:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff">
+<h4 style="color:#fff">Need Professional Help? 👩‍⚕️</h4>
+<p style="font-size:11px;margin:8px 0">Verified therapists from NIMHANS, starting at ₹299.</p>
+<button class="btn" style="background:#fff;color:#667eea" onclick="location.href='therapist.html'">Find Therapist</button>
+</div>
+</div>
+</div>
+
+<script>
+let selectedTag = 'General';
+document.querySelectorAll('.tag[data-tag]').forEach(t=>{
+ t.onclick = ()=>{
+  document.querySelectorAll('.tag[data-tag]').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  selectedTag = t.dataset.tag;
+ }
+});
+
+const defaultPosts = [
+{id:1,name:"Anonymous • 2nd Year",avatar:"#667eea",letter:"A",tag:"Exam Stress",time:"2h ago",text:"VTU 5th sem exams next week, feeling very anxious. Can't sleep properly. Anyone else feeling same?",likes:12,liked:false,comments:[]},
+{id:2,name:"Anonymous • Final Year",avatar:"#43e97b",letter:"F",tag:"Motivation",time:"1d ago",text:"Got placed! After 1 year of depression and rejections, finally got offer. Don't give up guys.",likes:24,liked:false,comments:[]}
+];
+
+let posts = JSON.parse(localStorage.getItem('mm_community_posts')||'null') || defaultPosts;
+
+function render(){
+ let feed = document.getElementById('feed');
+ feed.innerHTML = posts.map(p=>`
+  <div class="card post">
+   <div class="post-head">
+    <div class="avatar" style="background:${p.avatar}">${p.letter}</div>
+    <div class="post-meta"><h4>${p.name} <span style="font-size:10px;background:#eef0ff;color:#667eea;padding:3px 8px;border-radius:10px">${p.tag}</span></h4><p>${p.time}</p></div>
+   </div>
+   <div class="post-text">${p.text}</div>
+   <div class="post-actions">
+    <button class="${p.liked?'liked':''}" onclick="likePost(${p.id})">❤️ ${p.likes} Support</button>
+    <button>💬 ${p.comments.length} Reply</button>
+   </div>
+  </div>
+ `).join('');
+}
+
+async function createPost(){
+ let txt = document.getElementById('postText').value.trim();
+ if(!txt){ alert('Write something...'); return; }
+ let email = localStorage.getItem('mm_userEmail') || 'demo@mind.com';
+ let isAnon = document.getElementById('isAnon').checked;
+
+ let newPost = { id: Date.now(), name: isAnon ? 'Anonymous • You' : 'You', avatar: '#667eea', letter: 'Y', tag: selectedTag, time: 'Just now', text: txt, likes: 0, liked: false, comments: [] };
+ posts.unshift(newPost);
+ localStorage.setItem('mm_community_posts', JSON.stringify(posts));
+ document.getElementById('postText').value='';
+ render();
+
+ let sqlPayload = { email: email, content: txt, tag: selectedTag, isAnonymous: isAnon?1:0 };
+ try{
+  let res = await fetch('http://localhost:3000/api/community',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sqlPayload)});
+  let data = await res.json();
+  if(data.success){ document.getElementById('msg').textContent='✅ Saved to  community'; setTimeout(()=>document.getElementById('msg').textContent='',3000); }
+ }catch(e){ document.getElementById('msg').textContent='⚠️ Saved locally, run node index.js'; }
+}
+
+function likePost(id){ let p = posts.find(x=>x.id===id); p.liked=!p.liked; p.likes+=p.liked?1:-1; localStorage.setItem('mm_community_posts', JSON.stringify(posts)); render(); }
+
+async function loadFromSQL(){
+ let email = localStorage.getItem('mm_userEmail') || 'demo@mind.com';
+ try{
+  let res = await fetch('http://localhost:3000/api/community');
+  let data = await res.json();
+  if(data && data.length>0){
+   let sqlPosts = data.slice(-10).reverse().map(d=>({ id: d.id, name: d.isAnonymous?'Anonymous • SQL':'SQL User', avatar:'#764ba2', letter:'S', tag: d.tag, time: new Date(d.created_at).toLocaleString(), text: d.content, likes: 0, liked: false, comments: [] }));
+   posts = [...sqlPosts, ...posts];
+   render();
+  }
+ }catch(e){}
+}
+loadFromSQL(); render();
+</script>
+</body>
+</html>

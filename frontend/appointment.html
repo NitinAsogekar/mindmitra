@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Book Appointment - MindMitra</title>
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0}
+.header{background:#222;color:white;padding:15px 30px;display:flex;justify-content:space-between}
+.container{max-width:800px;margin:20px auto;display:flex;gap:20px}
+.left{flex:1;background:white;padding:25px;border-radius:12px;box-shadow:0 4px 12px #ccc}
+.right{flex:0.8;background:white;padding:25px;border-radius:12px;box-shadow:0 4px 12px #ccc}
+input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:6px;box-sizing:border-box}
+label{font-weight:bold;font-size:14px;margin-top:10px;display:block}
+.btn-book{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:15px}
+.btn-book:hover{background:#1e7e34}
+.doc-info{background:#e3f2fd;padding:15px;border-radius:8px;display:flex;gap:15px;align-items:center;margin-bottom:15px}
+.doc-info img{width:60px;height:60px;border-radius:50%}
+.success-box{display:none;background:#e8f5e9;border:2px solid #43a047;padding:20px;border-radius:10px;text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div><a href="dashboard.html" style="color:white;text-decoration:none">← Dashboard</a> | <a href="therapist.html" style="color:white;text-decoration:none">Therapists</a></div>
+  <div>Book Appointment</div>
+</div>
+
+<div class="container">
+  <!-- Left - Booking Form -->
+  <div class="left">
+    <h2>📅 Book Your Session</h2>
+
+    <!-- Selected Doctor Info - Auto filled from therapist.html -->
+    <div class="doc-info" id="selectedDocInfo">
+      <img src="https://i.pravatar.cc/150?img=32" id="docImg">
+      <div>
+        <b id="docName">Select Doctor</b><br>
+        <small style="color:#666" id="docSpec">Please go to Find Therapist page first</small>
+      </div>
+    </div>
+
+    <label>Your Full Name</label>
+    <input type="text" id="p_name" placeholder="Enter your name">
+
+    <label>Appointment Date</label>
+    <input type="date" id="p_date">
+
+    <label>Time Slot</label>
+    <select id="p_time">
+      <option value="">Select Time</option>
+      <option>10:00 AM - 11:00 AM</option>
+      <option>11:00 AM - 12:00 PM</option>
+      <option>02:00 PM - 03:00 PM</option>
+      <option>04:00 PM - 05:00 PM</option>
+      <option>06:00 PM - 07:00 PM</option>
+    </select>
+
+    <label>Session Type</label>
+    <select id="p_type">
+      <option value="Video Call">Video Call - ₹800</option>
+      <option value="Audio Call">Audio Call - ₹500</option>
+      <option value="Chat">Chat Session - ₹300</option>
+      <option value="In-Person">In-Person Visit - ₹1000</option>
+    </select>
+
+    <label>What are you feeling? (Optional)</label>
+    <textarea id="p_issue" rows="3" placeholder="Eg: Anxiety, sleep issues, stress..."></textarea>
+
+    <button class="btn-book" onclick="bookAppointment()">Confirm Appointment → Payment</button>
+
+    <div class="success-box" id="successBox">
+      <h3 style="color:#2e7d32">✅ Appointment Booked!</h3>
+      <p id="successText"></p>
+      <button onclick="window.location.href='payments.html'" style="padding:10px 20px;background:#007bff;color:white;border:none;border-radius:6px;margin-top:10px">Proceed to Payment</button>
+    </div>
+  </div>
+
+  <!-- Right - Summary -->
+  <div class="right">
+    <h3>Booking Summary</h3>
+    <p style="font-size:14px;color:#666">MindMitra Session Charges</p>
+    <hr>
+    <p>Doctor Fee: <span style="float:right" id="fee">₹800</span></p>
+    <p>Platform Fee: <span style="float:right">₹50</span></p>
+    <p>Discount: <span style="float:right;color:green">-₹50</span></p>
+    <hr>
+    <p><b>Total: <span style="float:right" id="total">₹800</span></b></p>
+    <p style="font-size:12px;color:#666;margin-top:20px">✓ 100% Private & Secure<br>✓ Certified Therapists<br>✓ Reschedule anytime<br>✓ 24hr cancellation refund</p>
+    <p style="background:#fff3e0;padding:10px;border-radius:6px;font-size:12px;margin-top:15px">💡 Your PHQ-9 Score: <b id="phqScore">Not taken yet</b><br>Doctor will see this before session.</p>
+  </div>
+</div>
+
+<script>
+// Load selected doctor from therapist.html via localStorage
+const selectedDoctor = localStorage.getItem("selectedDoctor");
+if(selectedDoctor){
+  document.getElementById("docName").innerText = selectedDoctor;
+  document.getElementById("docSpec").innerText = "Clinical Psychologist - Available Today";
+} else {
+  document.getElementById("docName").innerText = "General Therapist";
+  document.getElementById("docSpec").innerText = "Available Today";
+}
+
+const phqScore = localStorage.getItem("phq_score");
+if(phqScore){
+  document.getElementById("phqScore").innerText = phqScore + " / 27";
+}
+
+document.getElementById("p_type").addEventListener("change", function(){
+  const val = this.value;
+  let price = "₹800";
+  if(val.includes("500")) price="₹500";
+  if(val.includes("300")) price="₹300";
+  if(val.includes("1000")) price="₹1000";
+  document.getElementById("fee").innerText = price;
+  document.getElementById("total").innerText = price;
+});
+
+async function bookAppointment(){
+  const name = document.getElementById("p_name").value.trim();
+  const date = document.getElementById("p_date").value;
+  const time = document.getElementById("p_time").value;
+  const type = document.getElementById("p_type").value;
+  const issue = document.getElementById("p_issue").value;
+
+  if(!name ||!date ||!time){
+    alert("Please fill Name, Date and Time");
+    return;
+  }
+
+  let email = localStorage.getItem('mm_userEmail') || localStorage.getItem('username') || 'demo@mind.com';
+
+  // Calculate amount from type
+  let amount = 800;
+  if(type.includes("500")) amount=500;
+  if(type.includes("300")) amount=300;
+  if(type.includes("1000")) amount=1000;
+
+  // Payload for XAMPP SQL - must match index.js
+  let sqlPayload = {
+    email: email,
+    doctor: selectedDoctor || "General Therapist",
+    date: date,
+    time: time,
+    type: type,
+    amount: amount,
+    status: "Pending"
+  };
+
+  // Local object for UI
+  const appointment = {
+    id: Date.now(),
+    doctor: sqlPayload.doctor,
+    patient: name,
+    date: date,
+    time: time,
+    type: type,
+    issue: issue,
+    status: "Pending",
+    amount: amount,
+    email: email,
+    bookedBy: email
+  };
+
+  let appointments = JSON.parse(localStorage.getItem("appointments") || "[]");
+  appointments.push(appointment);
+  localStorage.setItem("appointments", JSON.stringify(appointments));
+  localStorage.setItem("lastAppointment", JSON.stringify(appointment));
+
+  // SAVE TO XAMPP SQL
+  try{
+    let res = await fetch("http://localhost:3000/api/appointment", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(sqlPayload)
+    });
+    let data = await res.json();
+    if(data.success){
+      document.getElementById("successText").innerText = `✅  Dr. ${appointment.doctor} on ${date} at ${time} (${type}) - ₹${amount}`;
+    }
+  }catch(e){
+    document.getElementById("successText").innerText = `⚠️ Saved locally, backend not running. Run node index.js`;
+  }
+
+  document.getElementById("successBox").style.display="block";
+  document.getElementById("successBox").scrollIntoView({behavior:"smooth"});
+}
+
+document.getElementById("p_date").min = new Date().toISOString().split("T")[0];
+// Auto-fill name
+document.getElementById("p_name").value = localStorage.getItem('mm_userName') || '';
+</script>
+
+</body>
+</html>

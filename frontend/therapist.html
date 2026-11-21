@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Find Therapist - MindMitra</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{background:#f5f7fb;padding:20px}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto 20px;background:#fff;padding:14px 20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.05)}
+.top a{text-decoration:none;color:#667eea;font-weight:600;font-size:14px}
+.filters{max-width:1100px;margin:0 auto 15px;display:flex;gap:10px;flex-wrap:wrap}
+.filters select,.filters input{padding:8px 12px;border:1.5px solid #e8e8ec;border-radius:8px;font-size:12px;outline:none}
+.container{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 8px 25px rgba(0,0,0,.06);transition:.2s}
+.card:hover{transform:translateY(-4px)}
+.head{display:flex;gap:12px;align-items:center}
+.avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px}
+.info h4{font-size:14px}.info p{font-size:11px;color:#777}
+.tags{margin:10px 0;display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:10px;background:#eef0ff;color:#667eea;padding:4px 9px;border-radius:20px}
+.details{font-size:12px;color:#555;line-height:1.6;margin:8px 0}
+.bottom{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.price{font-weight:700;color:#667eea;font-size:14px}
+.btn{padding:8px 16px;border:none;border-radius:20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+.btn-outline{background:#fff;color:#667eea;border:1.5px solid #667eea;margin-right:6px}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:99}
+.modal-box{background:#fff;padding:22px;border-radius:16px;max-width:380px;width:90%}
+.modal-box input,.modal-box select{width:100%;padding:10px;border:1.5px solid #e8e8ec;border-radius:8px;margin:6px 0 10px;font-size:13px}
+.helpline{background:#fff3cd;border-left:4px solid #f0a500;padding:10px 14px;border-radius:8px;max-width:1100px;margin:0 auto 18px;font-size:11px;color:#664d03}
+</style>
+</head>
+<body>
+<div class="top">
+<a href="dashboard.html">← Dashboard</a>
+<h3 style="font-size:15px">Find Therapist 👩‍⚕️ (SQL)</h3>
+<a href="appointment.html">My Appointments →</a>
+</div>
+<div class="helpline">⚠️ Kiran Helpline: <b>1800-599-0019</b> | Appointments saved  </div>
+<div class="filters">
+<select id="filterSpeciality" onchange="render()"><option value="">All Speciality</option><option>Stress & Anxiety</option><option>Depression</option><option>Student Counselling</option><option>Sleep Issues</option><option>Relationship</option></select>
+<select id="filterLang" onchange="render()"><option value="">All Languages</option><option>English</option><option>Kannada</option><option>Hindi</option></select>
+<input id="searchName" placeholder="Search by name..." oninput="render()" style="flex:1;min-width:180px">
+</div>
+<div class="container" id="therapistList"></div>
+<div class="modal" id="bookingModal">
+<div class="modal-box">
+<h4 style="margin-bottom:10px">Book Appointment (SQL)</h4>
+<p id="modalTherapist" style="font-size:13px;color:#555;margin-bottom:10px"></p>
+<label style="font-size:11px;color:#666">Select Date</label><input type="date" id="bookDate">
+<label style="font-size:11px;color:#666">Select Time</label>
+<select id="bookTime"><option>10:00 AM - 11:00 AM</option><option>11:00 AM - 12:00 PM</option><option>02:00 PM - 03:00 PM</option><option>03:00 PM - 04:00 PM</option><option>05:00 PM - 06:00 PM</option></select>
+<label style="font-size:11px;color:#666">Mode</label>
+<select id="bookMode"><option>Video Call</option><option>Audio Call</option><option>Chat</option><option>In-Person (College)</option></select>
+<button class="btn" style="width:100%;margin-top:12px" onclick="confirmBooking()">Confirm Booking ✅ </button>
+<button class="btn btn-outline" style="width:100%;margin-top:8px;background:#fff" onclick="closeModal()">Cancel</button>
+<p id="bookMsg" style="font-size:12px;text-align:center;margin-top:8px;color:green"></p>
+</div>
+</div>
+<script>
+const therapists = [
+{id:1,name:"Dr. Sachin Tendulkar",qual:"M.Phil Sports Psychology",exp:"24 Years",lang:"English, Marathi, Hindi",speciality:"Stress & Anxiety",price:"₹499",rating:"4.9",about:"Focus under pressure.",color:"#667eea",tags:["Focus","Pressure"]},
+{id:2,name:"Dr. Rohit Sharma",qual:"PhD - Hitman Psychology",exp:"16 Years",lang:"English, Hindi",speciality:"Depression",price:"₹699",rating:"4.8",about:"Power hitting over depression.",color:"#764ba2",tags:["Depression","Power"]},
+{id:3,name:"Ms. Sania Nehwal",qual:"MA Sports Psychology",exp:"15 Years",lang:"English, Kannada, Hindi",speciality:"Student Counselling",price:"₹399",rating:"4.7",about:"Olympic mindset for students.",color:"#f093fb",tags:["Career","Focus"]},
+{id:4,name:"Dr. Virat Kohli",qual:"MD - Fitness & Mental Strength",exp:"15 Years",lang:"English, Hindi, Punjabi",speciality:"Sleep Issues",price:"₹799",rating:"4.9",about:"Discipline and 4 AM routine.",color:"#4facfe",tags:["Fitness","Sleep"]},
+{id:5,name:"Ms. P.V. Sindhu",qual:"MSc Psychology",exp:"10 Years",lang:"English, Hindi, Telugu",speciality:"Relationship & Family",price:"₹349",rating:"4.6",about:"Emotional control.",color:"#43e97b",tags:["Emotional","Family"]},
+{id:6,name:"Dr. M.S. Dhoni",qual:"Captain Cool - Ranchi",exp:"19 Years",lang:"English, Hindi",speciality:"Exam Anxiety",price:"₹599",rating:"5.0",about:"Calm in last over.",color:"#fa709a",tags:["Calm","Exam"]},
+];
+let selectedTherapist = null;
+function render(){
+let spec = document.getElementById('filterSpeciality').value;
+let lang = document.getElementById('filterLang').value;
+let search = document.getElementById('searchName').value.toLowerCase();
+let list = document.getElementById('therapistList');
+list.innerHTML='';
+therapists.filter(t=> (!spec || t.speciality===spec) && (!lang || t.lang.includes(lang)) && (!search || t.name.toLowerCase().includes(search))).forEach(t=>{
+ list.innerHTML+=`<div class="card"><div class="head"><div class="avatar" style="background:${t.color}">${t.name.charAt(0)}</div><div class="info"><h4>${t.name} ⭐ ${t.rating}</h4><p>${t.qual} | ${t.exp}</p><p>${t.lang}</p></div></div><div class="tags"><span class="tag">${t.speciality}</span>${t.tags.map(x=>`<span class="tag">${x}</span>`).join('')}</div><div class="details"><b>About:</b> ${t.about}</div><div class="bottom"><span class="price">${t.price}/session</span><div><button class="btn btn-outline" onclick="viewProfile(${t.id})">View</button><button class="btn" onclick="openBooking(${t.id})">Book</button></div></div></div>`;
+});
+}
+function openBooking(id){ selectedTherapist = therapists.find(t=>t.id===id); document.getElementById('modalTherapist').textContent = selectedTherapist.name + ' - ' + selectedTherapist.speciality; document.getElementById('bookingModal').style.display='flex'; let today = new Date().toISOString().split('T')[0]; document.getElementById('bookDate').min = today; }
+function closeModal(){ document.getElementById('bookingModal').style.display='none';}
+async function confirmBooking(){
+ let date = document.getElementById('bookDate').value;
+ let time = document.getElementById('bookTime').value;
+ let mode = document.getElementById('bookMode').value;
+ if(!date){ alert('Please select date'); return; }
+ let email = localStorage.getItem('mm_userEmail') || 'demo@mind.com';
+ let appt = {
+  id: Date.now(), therapistId: selectedTherapist.id, therapistName: selectedTherapist.name, therapist_name: selectedTherapist.name,
+  speciality: selectedTherapist.speciality, date: date, time: time, mode: mode, price: selectedTherapist.price,
+  email: email, status: 'Confirmed', bookedAt: new Date().toISOString()
+ };
+ let all = JSON.parse(localStorage.getItem('mm_appointments')||'[]');
+ all.push(appt);
+ localStorage.setItem('mm_appointments', JSON.stringify(all));
+ document.getElementById('bookMsg').textContent = 'Saving to MySQL...';
+ try{
+  let res = await fetch('http://localhost:3000/api/appointment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email, therapist_name:selectedTherapist.name, speciality:selectedTherapist.speciality, date:date, time:time, mode:mode, price:selectedTherapist.price, status:'Confirmed'})});
+  let data = await res.json();
+  document.getElementById('bookMsg').textContent = data.success? '✅ Booked in MySQL appointments table! Redirecting...' : 'Booked locally! Redirecting...';
+ }catch(e){ document.getElementById('bookMsg').textContent = '✅ Booked locally! (Start node index.js for SQL) Redirecting...'; }
+ setTimeout(()=>{ window.location.href='appointment.html'; },1200);
+}
+function viewProfile(id){ let t = therapists.find(x=>x.id===id); alert(`${t.name}\n${t.qual}\n${t.exp}\n${t.speciality}\n${t.lang}\n\n${t.about}\n\n${t.price}/session`); }
+render();
+</script>
+</body>
+</html>

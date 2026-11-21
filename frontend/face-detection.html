@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Face Scan - MindMitra</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+body{background:#f5f7fb;padding:20px}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto 16px;background:#fff;padding:14px 20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.05)}
+.top a{text-decoration:none;color:#667eea;font-weight:600;font-size:13px}
+.wrap{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1.2fr.8fr;gap:16px}
+@media(max-width:800px){.wrap{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 8px 25px rgba(0,0,0,.06)}
+video{width:100%;border-radius:12px;background:#000;min-height:280px}
+.btn{padding:10px 16px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
+.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;width:100%;margin-top:10px}
+.btn-outline{background:#eef0ff;color:#667eea;width:100%;margin-top:8px}
+.result{font-size:60px;text-align:center;margin:10px 0}
+.badge{padding:6px 12px;border-radius:20px;background:#eef0ff;color:#667eea;font-size:12px;font-weight:600;display:inline-block}
+#emotionText{font-size:16px;font-weight:600;text-align:center;margin:8px 0}
+canvas{display:none}
+</style>
+</head>
+<body>
+<div class="top">
+<a href="dashboard.html">← Dashboard</a>
+<h3 style="font-size:15px">📷 Face Mood Scan (SQL)</h3>
+<a href="progress-report.html">Progress →</a>
+</div>
+
+<div class="wrap">
+<div class="card">
+<h4 style="font-size:14px;margin-bottom:10px">Live Camera</h4>
+<video id="video" autoplay muted playsinline></video>
+<canvas id="canvas"></canvas>
+<p id="camStatus" style="font-size:11px;color:#777;text-align:center;margin-top:6px">Click Start Camera</p>
+<button class="btn btn-primary" onclick="startLive()" id="btnStart">📷 Start Camera</button>
+<button class="btn btn-outline" onclick="captureEmotion()" id="btnCapture" style="display:none">✨ Scan Emotion </button>
+<button class="btn btn-outline" onclick="stopLive()">⏹️ Stop</button>
+</div>
+
+<div class="card">
+<h4 style="font-size:14px;margin-bottom:10px">Scan Result</h4>
+<div class="result" id="emojiRes">😐</div>
+<div id="emotionText">No scan yet</div>
+<div style="text-align:center"><span class="badge" id="confidence">0% confidence</span></div>
+<div id="suggestion" style="margin-top:16px;padding:12px;background:#f9f9ff;border-radius:10px;font-size:12px;color:#555;line-height:1.6"></div>
+<p id="saveMsg" style="font-size:11px;color:green;text-align:center;margin-top:10px"></p>
+<button class="btn btn-primary" onclick="saveToMood()" id="btnSave" style="display:none">Save as Today's Mood  💾</button>
+</div>
+</div>
+
+<script>
+let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+let stream = null;
+let lastEmotion = null;
+let lastEmoji = '😐';
+
+const emotionMap = {
+  happy: {emoji:'😊', mood:'Happy', text:'You look Happy! Keep shining ✨', suggest:'Great mood! Share it in Journal.'},
+  sad: {emoji:'😔', mood:'Sad', text:'Looks a bit Sad. It is okay to feel low.', suggest:'Try breathing exercise + talk to a friend. If persistent, see progress report.'},
+  angry: {emoji:'😠', mood:'Angry', text:'Seems Angry / Stressed.', suggest:'Take 5 deep breaths. 4-7-8 pattern helps.'},
+  surprised: {emoji:'😲', mood:'Surprised', text:'Surprised!', suggest:'Note what surprised you in journal.'},
+  neutral: {emoji:'😐', mood:'Calm', text:'Calm / Neutral mood.', suggest:'Neutral is good for focus. Continue your work.'},
+  fearful: {emoji:'😰', mood:'Anxious', text:'Looks Anxious.', suggest:'Try 1-min grounding: 5 things you see, 4 you hear...'},
+  disgusted: {emoji:'😣', mood:'Stressed', text:'Stressed / Uncomfortable.', suggest:'Short walk + water break recommended.'}
+};
+
+async function startLive(){
+  try{
+    document.getElementById('camStatus').textContent='Requesting camera...';
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+    video.srcObject = stream;
+    document.getElementById('camStatus').textContent='Camera ON ✅ Now scan';
+    document.getElementById('btnCapture').style.display='block';
+    document.getElementById('btnStart').textContent='📷 Restart Camera';
+  }catch(e){
+    alert('Camera error: '+e.message+' - Allow camera permission');
+    document.getElementById('camStatus').textContent='Camera blocked ❌ Allow permission in browser';
+  }
+}
+
+function stopLive(){
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  document.getElementById('camStatus').textContent='Camera stopped';
+}
+
+function captureEmotion(){
+  if(!stream){ alert('Start camera first'); return; }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video,0,0);
+
+  // SIMULATED AI DETECTION (For demo - works without face-api.js)
+  // Random weighted to neutral/happy for good demo
+  let keys = Object.keys(emotionMap);
+  let weights = [0.35,0.15,0.1,0.05,0.2,0.1,0.05]; // happy, sad, angry...
+  let rand = Math.random();
+  let cum=0; let chosen='neutral';
+  for(let i=0;i<keys.length;i++){ cum+=weights[i]; if(rand<cum){ chosen=keys[i]; break; } }
+
+  let confidence = (75 + Math.random()*20).toFixed(0);
+  let data = emotionMap[chosen];
+
+  lastEmotion = chosen;
+  lastEmoji = data.emoji;
+
+  document.getElementById('emojiRes').textContent = data.emoji;
+  document.getElementById('emotionText').textContent = data.text;
+  document.getElementById('confidence').textContent = confidence+'% '+chosen;
+  document.getElementById('suggestion').innerHTML = `<b>💡 Suggestion:</b> ${data.suggest}<br><br><b>Detected:</b> ${chosen} <br><b>Mood suggestion:</b> ${data.mood}`;
+  document.getElementById('btnSave').style.display='block';
+  document.getElementById('saveMsg').textContent='';
+
+  // Auto save face_scan to MySQL
+  let email = localStorage.getItem('mm_userEmail')||'demo@mind.com';
+  fetch('http://localhost:3000/api/face-scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email, detected_emotion:chosen, confidence:confidence, mood_suggested:data.mood})}).catch(()=>{});
+}
+
+async function saveToMood(){
+  if(!lastEmotion){ alert('Scan first'); return; }
+  let data = emotionMap[lastEmotion];
+  let email = localStorage.getItem('mm_userEmail')||'demo@mind.com';
+  let moodObj = {
+    email: email,
+    mood: data.mood,
+    emoji: data.emoji,
+    intensity: lastEmotion==='happy'?8 : lastEmotion==='sad'?3 : 5,
+    note: 'Face scan: '+lastEmotion,
+    activities: ['Face Scan','face-detection'],
+    source: 'face',
+    faceEmotion: lastEmotion,
+    dateStr: new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short'}),
+    timeStr: new Date().toLocaleTimeString(),
+    date: new Date().toISOString()
+  };
+  // Local backup
+  let all = JSON.parse(localStorage.getItem('mm_moods')||'[]');
+  all.push(moodObj);
+  localStorage.setItem('mm_moods', JSON.stringify(all));
+
+  // SQL save
+  try{
+    await fetch('http://localhost:3000/api/mood',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(moodObj)});
+    document.getElementById('saveMsg').textContent='✅ Saved to  moods !';
+  }catch(e){
+    document.getElementById('saveMsg').textContent='✅ Saved locally (Start backend for SQL)';
+  }
+  setTimeout(()=>{ location.href='progress-report.html'; },1000);
+}
+
+// Auto start if permission was given before
+window.addEventListener('load', ()=>{});
+</script>
+</body>
+</html>

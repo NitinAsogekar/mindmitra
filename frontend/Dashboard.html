@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard - MindMitra - Phase 1 with Emojis 😊</title>
+<script>
+(function(){
+  let t = localStorage.getItem('mm_theme') || 'light';
+  if(t==='system') t = window.matchMedia('(prefers-color-scheme: dark)').matches? 'dark':'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root{--bg:#f2f2f2;--card:#fff;--text:#222;--text2:#666;--shadow:0 5px 15px #ccc}
+[data-theme="dark"]{--bg:#12131a;--card:#1e1f2b;--text:#e8e8ea;--text2:#9aa0a6;--shadow:0 5px 15px rgba(0,0,0,.5)}
+body{font-family:Arial;background:var(--bg);margin:0;color:var(--text);transition:.3s}
+.header{background:#222;color:white;padding:15px 30px;display:flex;justify-content:space-between;align-items:center}
+.header a{color:#ff6b6b;text-decoration:none}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;padding:20px 30px;max-width:1000px;margin:auto}
+.card{background:var(--card);border-radius:15px;padding:22px;text-align:center;box-shadow:var(--shadow);cursor:pointer;transition:0.3s;text-decoration:none;color:var(--text);display:block;position:relative;overflow:hidden}
+.card:hover{transform:translateY(-6px) scale(1.02)}
+.card.icon{font-size:46px;display:block;transition:.3s}
+.card:hover.icon{transform:scale(1.2) rotate(5deg)}
+.card h3{margin:12px 0 8px 0;font-size:16px}
+.card p{font-size:12px;color:var(--text2);line-height:1.4}
+.card.go{font-weight:bold;margin-top:10px;display:block;font-size:13px}
+.phase-tag{background:var(--card);padding:10px 24px;border-radius:20px;display:inline-block;margin:10px 30px;font-size:12px;box-shadow:var(--shadow)}
+.bottom-links{max-width:1000px;margin:18px auto;padding:0 30px;display:flex;flex-wrap:wrap;gap:10px}
+.bottom-links a{background:var(--card);padding:9px 16px;border-radius:20px;text-decoration:none;color:var(--text);font-size:12px;box-shadow:var(--shadow);border:1px solid #eee;transition:.2s}
+.bottom-links a:hover{background:#667eea;color:#fff}
+[data-theme="dark"].bottom-links a{border-color:#2a2c3a}
+.emoji-float{position:absolute;top:8px;right:10px;font-size:18px;opacity:.7}
+@media(max-width:650px){.grid{grid-template-columns:1fr;padding:15px}.phase-tag{margin:8px 15px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><b>🧠 MindMitra</b> - Phase 1 MVP 😊</div>
+  <div><span id="userName">Hi</span> | <a href="#" onclick="logout()">Logout</a></div>
+</div>
+
+<div class="phase-tag">🔓 Phase 1 - Free Features Live Now ✨</div>
+
+<div class="grid">
+  <a href="assessment.html" class="card" style="border-top:5px solid #007bff">
+    <span class="emoji-float">🧠✨</span>
+    <div class="icon">🧠</div>
+    <h3>🧠 Take Assessment</h3>
+    <p>PHQ-9 & GAD-7 Test - Check score in 2 mins 📝</p>
+    <span class="go" style="color:#007bff">Start Now →</span>
+  </a>
+
+  <a href="mood-tracker.html" class="card" style="border-top:5px solid #28a745">
+    <span class="emoji-float">😊😁😔</span>
+    <div class="icon">😊</div>
+    <h3>😊 Mood Tracker with Emojis</h3>
+    <p>Track daily mood with 😁 😐 😔 😢 + calendar + graph 📊</p>
+    <span class="go" style="color:#28a745">Track Today →</span>
+  </a>
+
+  <a href="face-detection.html" class="card" style="border-top:5px solid #00bcd4">
+    <span class="emoji-float">🔴 LIVE</span>
+    <div class="icon">📷😊</div>
+    <h3>📷 Live Face Mood + Emoji</h3>
+    <p>Camera detects 😊 😔 😠 😐 live + saves with emoji 🤖</p>
+    <span class="go" style="color:#00bcd4">Scan Now →</span>
+  </a>
+
+  <a href="music-therapy.html" class="card" style="border-top:5px solid #e91e63">
+    <span class="emoji-float">🎵💙🌿</span>
+    <div class="icon">🎵</div>
+    <h3>🎵 Music Therapy - Fresh & Relief</h3>
+    <p>🌿 Fresh Happy ☀️ + 💙 Relief Calm 🌊 for stress & sleep 😴</p>
+    <span class="go" style="color:#e91e63">Listen Now →</span>
+  </a>
+
+  <a href="journal.html" class="card" style="border-top:5px solid #ff9800">
+    <span class="emoji-float">📔✍️</span>
+    <div class="icon">📔</div>
+    <h3>📔 Daily Journal ✍️</h3>
+    <p>Write private thoughts with emojis 😊 Helps reduce stress 💭</p>
+    <span class="go" style="color:#ff9800">Write Now →</span>
+  </a>
+
+  <a href="chatbot.html" class="card" style="border-top:5px solid #9c27b0">
+    <span class="emoji-float">🤖💬</span>
+    <div class="icon">🤖</div>
+    <h3>🤖 AI Support Mitra 💙</h3>
+    <p>Talk to AI when feeling low 😔 24x7 instant support 💬</p>
+    <span class="go" style="color:#9c27b0">Chat Now →</span>
+  </a>
+</div>
+
+<div class="phase-tag" style="background:#fff3e0;color:#333">🔒 Phase 2 - Coming Soon: 👩‍⚕️ Find Therapist | 📅 Appointment | 💳 Payments</div>
+<div class="phase-tag" style="background:#e8f5e9;color:#333">🔒 Phase 3 - Coming Soon: 📊 Progress Report | 👥 Community | 🧘 Meditation</div>
+
+<div class="bottom-links">
+  <a href="patient-profile.html">👤 My Profile</a>
+  <a href="therapist.html">👩‍⚕️ Find Therapist</a>
+  <a href="appointment.html">📅 My Appointments</a>
+  <a href="progress-report.html">📊 Progress Report</a>
+  <a href="meditation.html">🧘 Meditation</a>
+  <a href="community.html">👥 Community</a>
+  <a href="music-therapy.html">🎵 Music Therapy</a>
+  <a href="face-detection.html">📷😊 Face Scan</a>
+  <a href="contact.html">📩 Contact Us</a>
+  <a href="settings.html">⚙️ Settings</a>
+</div>
+
+<div style="text-align:center;padding:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+<a href="contact.html" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:12px 22px;border-radius:25px;text-decoration:none;font-size:13px;font-weight:bold">📩 Contact Us - Need Help? 💬</a>
+<a href="mood-tracker.html" style="background:#fff;color:#28a745;padding:12px 22px;border-radius:25px;text-decoration:none;font-size:13px;font-weight:bold;border:2px solid #28a745">😊 Track Mood Now</a>
+</div>
+<script>
+const username = localStorage.getItem("username") || localStorage.getItem("mm_userEmail") || localStorage.getItem("mm_currentUser");
+if(!username){ window.location.href="index.html"; }
+else { document.getElementById("userName").innerText="Hi, "+username.split('@')[0]+" 😊"; }
+
+// ===== Load Live Stats from XAMPP SQL =====
+async function loadDashboardStats(){
+ let email = localStorage.getItem('mm_userEmail') || username;
+ try{
+  let [moodsRes, journalsRes, assessRes] = await Promise.all([
+   fetch('http://localhost:3000/api/moods/'+email).catch(()=>null),
+   fetch('http://localhost:3000/api/journals/'+email).catch(()=>null),
+   fetch('http://localhost:3000/api/assessments/'+email).catch(()=>null)
+  ]);
+
+  if(moodsRes){
+   let moods = await moodsRes.json();
+   if(moods.length>0){
+    // Update mood card
+    let last = moods[moods.length-1];
+    document.querySelector('a[href="mood-tracker.html"] p').innerHTML = `Last: ${last.emoji} ${last.mood} (${last.intensity}/10) | Total ${moods.length} tracked 📊`;
+   }
+  }
+  if(assessRes){
+   let assessments = await assessRes.json();
+   if(assessments.length>0){
+    let last = assessments[assessments.length-1];
+    document.querySelector('a[href="assessment.html"] p').innerHTML = `Last Score: ${last.score} - ${last.level} ✅`;
+   }
+  }
+ }catch(e){ console.log('Backend not running, showing local data'); }
+}
+loadDashboardStats();
+
+function logout(){
+  // Keep theme, clear user
+  let theme = localStorage.getItem('mm_theme');
+  localStorage.clear();
+  if(theme) localStorage.setItem('mm_theme', theme);
+  window.location.href="index.html";
+}
+</script>
+</body>
+</html>

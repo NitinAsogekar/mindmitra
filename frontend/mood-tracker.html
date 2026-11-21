@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mood Tracker - MindMitra with Emojis</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<script>(function(){let t=localStorage.getItem('mm_theme')||'light';if(t==='system')t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)})();</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#222;--text2:#666;--border:#eee;--input:#fff;--shadow:0 8px 25px rgba(0,0,0,.06)}
+[data-theme="dark"]{--bg:#12131a;--card:#1e1f2b;--text:#e8e8ea;--text2:#9aa0a6;--border:#2a2c3a;--input:#2a2c3a;--shadow:0 8px 25px rgba(0,0,0,.3)}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{background:var(--bg);color:var(--text);padding:20px;transition:.3s}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:0 auto 16px;background:var(--card);padding:14px 20px;border-radius:12px;box-shadow:var(--shadow)}
+.top a{text-decoration:none;color:#667eea;font-weight:600;font-size:13px}
+.grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 350px;gap:18px}
+.card{background:var(--card);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+h4{font-size:14px;margin-bottom:10px}
+.mood-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 14px}
+.mood-btn{padding:12px 4px;border-radius:12px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:center;transition:.2s}
+.mood-btn:hover{transform:translateY(-3px);border-color:#667eea}
+.mood-btn.active{border-color:#667eea;background:#eef0ff;transform:scale(1.05)}
+.mood-btn span{font-size:30px;display:block}
+.mood-btn b{font-size:10px;display:block;margin-top:4px}
+label{font-size:12px;color:var(--text2)}
+input,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;margin:6px 0 10px;font-size:13px;outline:none;background:var(--input);color:var(--text)}
+.chip{display:inline-block;padding:5px 10px;border-radius:20px;background:var(--bg);font-size:11px;margin:3px;cursor:pointer;border:1.5px solid transparent}
+.chip.active{background:#eef0ff;border-color:#667eea;color:#667eea}
+.btn{width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer}
+.history{max-height:420px;overflow-y:auto}
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:10px 6px;border-bottom:1px solid var(--border)}
+.emoji-large{font-size:22px;margin-right:4px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;border-radius:8px;background:var(--bg);padding:2px}
+.cal-day.has-mood{color:#fff;font-weight:600;font-size:11px}
+.cal-day small{font-size:14px;line-height:1}
+@media(max-width:850px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="top">
+<a href="dashboard.html">← Dashboard</a>
+<h3 style="font-size:14px">😊 Mood Tracker - SQL Connected</h3>
+<a href="progress-report.html">Report →</a>
+</div>
+
+<div class="grid">
+<div class="card">
+<h4>How are you feeling today? Select Emoji 😊</h4>
+<div class="mood-row" id="moodRow">
+<div class="mood-btn" data-mood="Very Happy" data-emoji="😁" data-color="#43e97b" onclick="selectMood(this)"><span>😁</span><b>Very Happy</b></div>
+<div class="mood-btn" data-mood="Happy" data-emoji="😊" data-color="#a8e063" onclick="selectMood(this)"><span>😊</span><b>Happy</b></div>
+<div class="mood-btn" data-mood="Neutral" data-emoji="😐" data-color="#f6d365" onclick="selectMood(this)"><span>😐</span><b>Neutral</b></div>
+<div class="mood-btn" data-mood="Sad" data-emoji="😔" data-color="#fa709a" onclick="selectMood(this)"><span>😔</span><b>Sad</b></div>
+<div class="mood-btn" data-mood="Very Sad" data-emoji="😢" data-color="#e74c3c" onclick="selectMood(this)"><span>😢</span><b>Very Sad</b></div>
+</div>
+
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="extraEmojis">
+<span style="font-size:11px;color:var(--text2);width:100%">More emojis: </span>
+<span class="chip" onclick="selectExtra(this,'🥳','Celebrating')">🥳 Celebrating</span>
+<span class="chip" onclick="selectExtra(this,'😴','Tired')">😴 Tired</span>
+<span class="chip" onclick="selectExtra(this,'😠','Angry')">😠 Angry</span>
+<span class="chip" onclick="selectExtra(this,'😮','Surprised')">😮 Surprised</span>
+<span class="chip" onclick="selectExtra(this,'😨','Anxious')">😨 Anxious</span>
+<span class="chip" onclick="selectExtra(this,'💙','Calm')">💙 Calm</span>
+<span class="chip" onclick="selectExtra(this,'🌿','Fresh')">🌿 Fresh</span>
+</div>
+
+<div id="selectedPreview" style="text-align:center;padding:10px;background:var(--bg);border-radius:10px;margin-bottom:12px;display:none">
+<span style="font-size:40px" id="previewEmoji">😐</span><br>
+<b id="previewText" style="font-size:13px"></b>
+</div>
+
+<label>Intensity (1-10) 🔥</label>
+<div style="display:flex;align-items:center;gap:10px"><input type="range" id="intensity" min="1" max="10" value="5" oninput="document.getElementById('intVal').textContent=this.value"><span id="intVal" style="font-size:12px;color:#667eea;font-weight:600">5</span></div>
+
+<label>What are you doing? 🏷️</label>
+<div id="activityChips">
+<span class="chip" onclick="toggleChip(this)">📚 Studying</span>
+<span class="chip" onclick="toggleChip(this)">💼 Working</span>
+<span class="chip" onclick="toggleChip(this)">🏋️ Exercising</span>
+<span class="chip" onclick="toggleChip(this)">👥 With Friends</span>
+<span class="chip" onclick="toggleChip(this)">👨‍👩‍👧 Family</span>
+<span class="chip" onclick="toggleChip(this)">🎮 Gaming</span>
+<span class="chip" onclick="toggleChip(this)">😴 Sleep</span>
+<span class="chip" onclick="toggleChip(this)">📷 Face Scan</span>
+</div>
+
+<label>Note (optional) ✍️</label>
+<textarea id="moodNote" rows="3" placeholder="What made you feel this way? 😊"></textarea>
+
+<label>Sleep Hours 😴</label>
+<input id="sleepHrs" type="number" placeholder="e.g. 7">
+
+<button class="btn" onclick="saveMood()">Save Mood  💾</button>
+<p id="saveMsg" style="text-align:center;font-size:12px;margin-top:8px;color:green"></p>
+<canvas id="moodChart" style="margin-top:18px;max-height:200px"></canvas>
+</div>
+
+<div>
+<div class="card">
+<h4>📅 Calendar with Emojis</h4>
+<div class="calendar" id="calendar"></div>
+</div>
+<div class="card" style="margin-top:16px">
+<h4>📜 Recent Moods - From SQL</h4>
+<div class="history" id="historyList"></div>
+</div>
+</div>
+</div>
+
+<script>
+let selectedMood=null;
+let email=localStorage.getItem('mm_userEmail')||'demo@mind.com';
+
+function selectMood(el){
+ document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));
+ document.querySelectorAll('#extraEmojis.chip').forEach(b=>b.classList.remove('active'));
+ el.classList.add('active');
+ selectedMood={mood:el.dataset.mood,emoji:el.dataset.emoji,color:el.dataset.color};
+ showPreview();
+}
+function selectExtra(el,emoji,mood){
+ document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));
+ document.querySelectorAll('#extraEmojis.chip').forEach(b=>b.classList.remove('active'));
+ el.classList.add('active');
+ let cMap={"Celebrating":"#f6d365","Tired":"#9aa0a6","Angry":"#e74c3c","Surprised":"#4facfe","Anxious":"#9c27b0","Calm":"#667eea","Fresh":"#43e97b"};
+ selectedMood={mood:mood,emoji:emoji,color:cMap[mood]||"#667eea"};
+ showPreview();
+}
+function showPreview(){
+ if(!selectedMood) return;
+ document.getElementById('selectedPreview').style.display='block';
+ document.getElementById('previewEmoji').textContent=selectedMood.emoji;
+ document.getElementById('previewText').textContent=selectedMood.mood+" "+selectedMood.emoji;
+ document.getElementById('selectedPreview').style.border="2px solid "+selectedMood.color;
+}
+function toggleChip(el){ el.classList.toggle('active'); }
+
+// ===== FINAL SAVE TO XAMPP SQL =====
+async function saveMood(){
+ if(!selectedMood){ alert('Please select mood 😊'); return; }
+ let activities=Array.from(document.querySelectorAll('#activityChips.chip.active')).map(c=>c.textContent);
+ let now = new Date();
+
+ let payload = {
+  email: email,
+  mood: selectedMood.mood,
+  emoji: selectedMood.emoji,
+  intensity: document.getElementById('intensity').value,
+  note: document.getElementById('moodNote').value,
+  activities: activities.join,
+  source: 'manual',
+  faceEmotion: selectedMood.mood,
+  dateStr: now.toLocaleDateString(),
+  timeStr: now.toLocaleTimeString()
+ };
+
+ // Local save for UI
+ let localEntry = {...payload, color:selectedMood.color, date: now.toISOString(), id: Date.now()};
+ let all=JSON.parse(localStorage.getItem('mm_moods')||'[]');
+ all.push(localEntry);
+ localStorage.setItem('mm_moods', JSON.stringify(all));
+
+ // SQL save
+ try{
+  let res = await fetch('http://localhost:3000/api/mood',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body: JSON.stringify(payload)
+  });
+  let data = await res.json();
+  if(data.success){
+    document.getElementById('saveMsg').textContent='✅ Saved  moods : '+selectedMood.emoji;
+    document.getElementById('saveMsg').style.color='green';
+  }
+ }catch(e){
+  document.getElementById('saveMsg').textContent='❌ Backend not running. Run node index.js';
+  document.getElementById('saveMsg').style.color='red';
+ }
+
+ renderHistory(); renderCalendar(); renderChart();
+ document.getElementById('moodNote').value='';
+ setTimeout(()=>document.getElementById('saveMsg').textContent='',3000);
+}
+
+async function renderHistory(){
+ let list=document.getElementById('historyList');
+ // Try load from SQL first
+ try{
+  let res = await fetch('http://localhost:3000/api/moods/'+email);
+  let sqlData = await res.json();
+  if(sqlData.length>0){
+   list.innerHTML=sqlData.slice(0,20).map(m=>`
+    <div class="hist-item" style="border-left:4px solid #667eea">
+     <div><span class="emoji-large">${m.emoji||'😐'}</span><b style="font-size:13px">${m.mood}</b> (${m.intensity}/10)<br><span style="font-size:11px;color:#777">${m.dateStr} ${m.timeStr||''}</span></div>
+     <span style="font-size:14px">${m.emoji}</span>
+    </div>`).join('');
+   return;
+  }
+ }catch(e){}
+
+ let all=JSON.parse(localStorage.getItem('mm_moods')||'[]').filter(m=>m.email===email).reverse();
+ if(all.length===0){ list.innerHTML='<p style="font-size:12px;color:#999">No moods yet</p>'; return; }
+ list.innerHTML=all.slice(0,20).map(m=>`
+  <div class="hist-item" style="border-left:4px solid ${m.color}">
+   <div><span class="emoji-large">${m.emoji}</span><b>${m.mood}</b> (${m.intensity}/10)</div>
+  </div>`).join('');
+}
+function renderCalendar(){
+ let cal=document.getElementById('calendar');
+ cal.innerHTML='';
+ let all=JSON.parse(localStorage.getItem('mm_moods')||'[]').filter(m=>m.email===email);
+ let map={};
+ all.forEach(m=>{ let d=new Date(m.date||Date.now()).getDate(); if(!map[d]) map[d]=m; });
+ for(let i=1;i<=31;i++){
+  let m=map[i];
+  if(m){ cal.innerHTML+=`<div class="cal-day has-mood" style="background:${m.color}"><small>${m.emoji}</small>${i}</div>`;}
+  else { cal.innerHTML+=`<div class="cal-day">${i}</div>`;}
+ }
+}
+let chartInstance=null;
+function renderChart(){
+ let all=JSON.parse(localStorage.getItem('mm_moods')||'[]').filter(m=>m.email===email).slice(-7);
+ let labels=all.map(m=> (m.emoji||'😐')+" "+new Date(m.date).toLocaleDateString().slice(0,5));
+ let data=all.map(m=> parseInt(m.intensity));
+ let ctx=document.getElementById('moodChart');
+ if(chartInstance) chartInstance.destroy();
+ chartInstance=new Chart(ctx,{
+  type:'line',
+  data:{labels:labels,datasets:[{data:data,borderColor:'#667eea',backgroundColor:'rgba(102,126,234,.2)',tension:.4,fill:true}]},
+  options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:10}}}
+ });
+}
+renderHistory(); renderCalendar(); renderChart();
+</script>
+</body>
+</html>

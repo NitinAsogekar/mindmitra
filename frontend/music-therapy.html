@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Music Therapy - MindMitra</title>
+<script>(function(){let t=localStorage.getItem('mm_theme')||'light';if(t==='system')t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)})();</script>
+<style>
+:root{--bg:#f2f2f2;--card:#fff;--text:#222;--text2:#666}
+[data-theme="dark"]{--bg:#12131a;--card:#1e1f2b;--text:#e8e8ea;--text2:#9aa0a6}
+*{font-family:Arial;margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);padding:20px}
+.top{display:flex;justify-content:space-between;max-width:1000px;margin:0 auto 20px;background:var(--card);padding:14px 20px;border-radius:12px}
+.top a{text-decoration:none;color:#667eea;font-weight:bold}
+.filter{max-width:1000px;margin:0 auto 15px;display:flex;gap:8px;flex-wrap:wrap}
+.filter button{padding:8px 16px;border-radius:20px;border:1.5px solid #ddd;background:var(--card);cursor:pointer;font-size:12px;color:var(--text)}
+.filter button.active{background:#667eea;color:#fff;border-color:#667eea}
+.container{max-width:1000px;margin:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 5px 15px rgba(0,0,0,.1);transition:.2s}
+.card:hover{transform:translateY(-3px)}
+.card h4{margin-bottom:6px}
+.card p{font-size:12px;color:var(--text2);margin-bottom:10px}
+.btn{padding:8px 14px;border:none;border-radius:20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;cursor:pointer;font-size:12px;margin:3px}
+.btn-sm{background:#eef0ff;color:#667eea}
+audio{width:100%;margin-top:8px}
+.active-card{outline:2px solid #667eea}
+.badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:10px;color:#fff;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="top"><a href="dashboard.html">← Dashboard</a><h3>🎵 Music Therapy</h3><a href="face-detection.html">Face Scan →</a></div>
+
+<div style="max-width:1000px;margin:0 auto 18px;background:#fff3cd;border-left:4px solid #f0a500;padding:10px;border-radius:8px;font-size:12px;color:#664d03">
+🎧 <b>Fresh</b> = Mood uplift & energy | <b>Relief</b> = Stress, anxiety, sleep. Use headphones. Not medical treatment.
+</div>
+
+<div class="filter" id="filterBtns">
+<button class="active" onclick="filterTracks('all',this)">All Songs</button>
+<button onclick="filterTracks('fresh',this)">🌿 Fresh & Happy</button>
+<button onclick="filterTracks('relief',this)">💙 Relief & Calm</button>
+<button onclick="filterTracks('focus',this)">🧠 Focus & Study</button>
+<button onclick="filterTracks('sleep',this)">😴 Sleep</button>
+</div>
+
+<div class="container" id="musicGrid"></div>
+
+<div style="max-width:1000px;margin:20px auto;background:var(--card);padding:18px;border-radius:14px">
+<h4>▶️ Now Playing</h4>
+<p id="nowPlaying" style="font-size:12px;color:var(--text2)">Select a track above</p>
+<audio id="player" controls style="width:100%;margin-top:10px"></audio>
+<div style="margin-top:10px">
+<button class="btn" onclick="document.getElementById('player').pause()">⏸ Pause</button>
+<button class="btn" onclick="saveMoodFromMusic()">Save Mood After Listening 😊</button>
+</div>
+</div>
+
+<script>
+const tracks=[
+// FRESH SONGS
+{id:1,title:"Fresh Morning Bloom",mood:"Fresh",cat:"fresh",desc:"Soft piano + birds - feel fresh instantly",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",color:"#43e97b",emoji:"🌸"},
+{id:2,title:"Happy Vibes",mood:"Fresh",cat:"fresh",desc:"Upbeat acoustic - energy boost",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",color:"#f6d365",emoji:"☀️"},
+{id:3,title:"Kannada Fresh - Nature Walk",mood:"Fresh",cat:"fresh",desc:"Flute + nature - Karnataka feel",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",color:"#a8e063",emoji:"🌿"},
+{id:4,title:"Fresh Start - Lo-fi",mood:"Fresh",cat:"fresh",desc:"Lo-fi chill for morning motivation",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",color:"#00c9a7",emoji:"✨"},
+{id:7,title:"Bollywood Fresh Mix",mood:"Fresh",cat:"fresh",desc:"Light happy instrumental",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3",color:"#ff9a9e",emoji:"🎶"},
+// RELIEF SONGS
+{id:5,title:"Relief - Deep Breathing",mood:"Relief",cat:"relief",desc:"432Hz healing + slow breathing guide",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",color:"#667eea",emoji:"💙"},
+{id:6,title:"Anxiety Relief Tone",mood:"Relief",cat:"relief",desc:"Calm drone for anxiety ease",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3",color:"#764ba2",emoji:"🧘"},
+{id:8,title:"Stress Relief - Ocean Waves",mood:"Relief",cat:"relief",desc:"Ocean + soft piano - let go stress",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3",color:"#4facfe",emoji:"🌊"},
+{id:9,title:"Heart Relief - Piano",mood:"Relief",cat:"relief",desc:"Emotional relief, cry & release",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3",color:"#fa709a",emoji:"💧"},
+{id:10,title:"Relief - Temple Bells",mood:"Relief",cat:"relief",desc:"Meditation bells + chant - peace",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3",color:"#f093fb",emoji:"🔔"},
+// FOCUS & SLEEP
+{id:11,title:"Focus - Study Lofi",mood:"Focus",cat:"focus",desc:"Lo-fi beats for exam focus",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",color:"#667eea",emoji:"📚"},
+{id:12,title:"Sleep Lullaby - Night",mood:"Sleep",cat:"sleep",desc:"Gentle rain + piano for sleep",url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",color:"#2c3e50",emoji:"😴"},
+];
+
+let currentFilter='all';
+function render(list=tracks){
+document.getElementById('musicGrid').innerHTML=list.map(t=>`
+<div class="card" id="card${t.id}" style="border-top:4px solid ${t.color}">
+<span class="badge" style="background:${t.color}">${t.cat.toUpperCase()}</span>
+<h4>${t.emoji} ${t.title}</h4>
+<p><b>${t.mood}</b> - ${t.desc}</p>
+<button class="btn" onclick="playTrack(${t.id})">▶️ Play</button>
+<button class="btn btn-sm" onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(t.title+' relaxing') }','_blank')">YouTube</button>
+</div>`).join('');
+}
+function filterTracks(cat,btn){
+ currentFilter=cat;
+ document.querySelectorAll('.filter button').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');
+ if(cat==='all') render(tracks);
+ else render(tracks.filter(t=>t.cat===cat));
+}
+function playTrack(id){
+let t=tracks.find(x=>x.id===id);
+let p=document.getElementById('player');
+p.src=t.url; p.play();
+document.getElementById('nowPlaying').innerText=`${t.emoji} ${t.title} - ${t.mood} [${t.cat}]`;
+document.querySelectorAll('.card').forEach(c=>c.classList.remove('active-card'));
+document.getElementById('card'+id).classList.add('active-card');
+localStorage.setItem('mm_last_music', JSON.stringify({title:t.title, cat:t.cat, time:new Date().toISOString()}));
+}
+async function saveMoodFromMusic(){
+ let email=localStorage.getItem('mm_userEmail')||'demo@mind.com';
+ let np=document.getElementById('nowPlaying').innerText;
+ let moodName = currentFilter==='fresh' ? "Fresh & Happy" : currentFilter==='relief' ? "Relieved & Calm" : "Relaxed after music";
+ let emoji = currentFilter==='fresh'?"🌿":"💙";
+ let intensity = currentFilter==='fresh'?"8":"6";
+ let moods=JSON.parse(localStorage.getItem('mm_moods')||'[]');
+ moods.push({id:Date.now(),email:email,mood:moodName,emoji:emoji,color:"#667eea",intensity:intensity,activities:["Music Therapy", currentFilter],note:"Listened to "+np,date:new Date().toISOString(),dateStr:new Date().toLocaleDateString()});
+ localStorage.setItem('mm_moods', JSON.stringify(moods));
+ try{
+  await fetch('http://localhost:3000/api/mood',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,mood:moodName,emoji:emoji,intensity:parseInt(intensity),activities:"Music Therapy - "+currentFilter,note:"Music: "+np})});
+  await fetch('http://localhost:3000/api/wellness',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,activity_type:'music-therapy',duration_sec:180,pattern:currentFilter+' - '+np,mood_before:'stressed',mood_after:currentFilter==='fresh'?'happy':'calm'})});
+  alert('✅ Saved  moods + wellness_logs!');
+ }catch(e){ alert('Saved locally! Start node index.js'); }
+}
+render();
+</script>
+</body>
+</html>

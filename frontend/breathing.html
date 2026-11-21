@@ -1,0 +1,119 @@
+<script>
+let running=false, interval=null, sec=0, cycle=0, mode='calm';
+let startTime=null;
+let patterns={
+ calm:{in:4,hold1:4,out:4,hold2:4, label:'Box 4-4-4-4'},
+ sleep:{in:4,hold1:7,out:8,hold2:0, label:'4-7-8 Relax'},
+ focus:{in:4,hold1:4,out:6,hold2:0, label:'4-4-6 Focus'}
+};
+
+function setMode(el,m){
+ mode=m;
+ document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+ el.classList.add('active');
+ reset();
+}
+
+async function toggle(){
+ if(running){pause();return;}
+ running=true;
+ startTime = Date.now();
+ document.getElementById('startBtn').innerText='⏸ Pause';
+ startTimer();
+ loopBreathing();
+}
+
+function pause(){
+ running=false;
+ document.getElementById('startBtn').innerText='▶ Resume';
+ clearInterval(interval);
+ document.getElementById('phase').innerText='Paused';
+}
+
+function reset(){
+ running=false;
+ clearInterval(interval);
+ sec=0; cycle=0; startTime=null;
+ document.getElementById('timer').innerText='00:00';
+ document.getElementById('cycles').innerText='0';
+ document.getElementById('phase').innerText='Ready?';
+ document.getElementById('count').innerText='—';
+ document.getElementById('circle').className='circle';
+ document.getElementById('startBtn').innerText='▶ Start';
+}
+
+function startTimer(){
+ let t=0;
+ interval=setInterval(()=>{
+  if(!running) return;
+  t++;
+  let mm=String(Math.floor(t/60)).padStart(2,'0');
+  let ss=String(t%60).padStart(2,'0');
+  document.getElementById('timer').innerText=mm+':'+ss;
+ },1000);
+}
+
+async function loopBreathing(){
+ let p=patterns[mode];
+ while(running){
+  await doPhase('Breathe In', p.in, 'breathe-in');
+  if(!running) break;
+  if(p.hold1) await doPhase('Hold', p.hold1, '');
+  if(!running) break;
+  await doPhase('Breathe Out', p.out, 'breathe-out');
+  if(!running) break;
+  if(p.hold2) await doPhase('Hold', p.hold2, '');
+  cycle++;
+  document.getElementById('cycles').innerText=cycle;
+
+  // Save to SQL every 4 cycles
+  if(cycle%4==0){
+   saveWellness();
+  }
+ }
+}
+
+function doPhase(label,dur,cls){
+ return new Promise(res=>{
+  let c=document.getElementById('circle');
+  c.className='circle '+cls;
+  document.getElementById('phase').innerText=label;
+  let left=dur;
+  document.getElementById('count').innerText=left;
+  let iv=setInterval(()=>{
+   if(!running){clearInterval(iv);res();return;}
+   left--;
+   if(left>=0) document.getElementById('count').innerText=left;
+   if(left<=0){clearInterval(iv);res();}
+  },1000);
+ });
+}
+
+// ===== FINAL SAVE TO XAMPP SQL =====
+async function saveWellness(){
+ let email = localStorage.getItem('mm_userEmail') || 'demo@mind.com';
+ let duration = startTime? Math.floor((Date.now() - startTime)/1000) : cycle * 8;
+ let payload = {
+  email: email,
+  activity_type: 'breathing',
+  duration_sec: duration,
+  pattern: patterns[mode].label + ' ('+mode+')',
+  mood_before: 'anxious',
+  mood_after: 'calm'
+ };
+ try{
+  await fetch('http://localhost:3000/api/wellness',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body: JSON.stringify(payload)
+  });
+  console.log('✅ Saved to wellness_logs', payload);
+ }catch(e){ console.log('Backend not running'); }
+}
+
+// Also save when user stops
+let origReset = reset;
+window.addEventListener('beforeunload', ()=>{
+ if(cycle>0) saveWellness();
+});
+</script>

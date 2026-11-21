@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Payments - MindMitra</title>
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0}
+.header{background:#222;color:white;padding:15px 30px;display:flex;justify-content:space-between}
+.container{max-width:1000px;margin:20px auto;padding:20px}
+.plans{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.plan{background:white;width:300px;border-radius:12px;padding:25px;box-shadow:0 4px 12px #ccc;text-align:center;position:relative;border-top:5px solid #ddd}
+.plan.popular{border-top:5px solid #667eea;transform:scale(1.05);box-shadow:0 8px 20px #aaa}
+.badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#667eea;color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold}
+.price{font-size:36px;font-weight:bold;margin:10px 0}
+.price small{font-size:14px;color:#666}
+ul{list-style:none;padding:0;text-align:left;font-size:14px;color:#444}
+ul li{padding:8px 0;border-bottom:1px solid #f2f2f2}
+ul li::before{content:"✓ ";color:green;font-weight:bold}
+.btn-pay{width:100%;padding:12px;background:#222;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:15px}
+.btn-pay.popular-btn{background:#667eea}
+.appointment-summary{max-width:600px;margin:20px auto;background:white;padding:20px;border-radius:12px;box-shadow:0 4px 12px #ccc;display:none}
+.success{max-width:600px;margin:20px auto;background:#e8f5e9;border:2px solid #43a047;padding:25px;border-radius:12px;text-align:center;display:none}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><a href="dashboard.html" style="color:white;text-decoration:none">← Dashboard</a> | Payments</div>
+  <div>MindMitra Premium</div>
+</div>
+<div class="container">
+  <h2 style="text-align:center">Choose Your Wellness Plan</h2>
+  <p style="text-align:center;color:#666">Unlock therapist sessions + progress reports</p>
+  <div class="appointment-summary" id="appointmentBox">
+    <h3>🩺 Your Appointment</h3>
+    <p id="appointmentDetails"></p>
+    <hr>
+    <p><b>Amount to Pay: <span id="payAmount" style="float:right;color:#667eea;font-size:18px">₹800</span></b></p>
+    <button class="btn-pay popular-btn" onclick="payNow('appointment')">Pay Now & Confirm</button>
+  </div>
+  <div class="plans">
+    <div class="plan">
+      <h3>Free</h3>
+      <div class="price">₹0<small>/month</small></div>
+      <ul><li>PHQ-9 & GAD-7 Assessment</li><li>Daily Mood Tracker</li><li>Basic Journal (7 days)</li><li>AI Chatbot (5 msgs/day)</li><li>Community Access</li></ul>
+      <button class="btn-pay" onclick="selectPlan('Free')">Current Plan</button>
+    </div>
+    <div class="plan popular">
+      <div class="badge">MOST POPULAR</div>
+      <h3>Premium</h3>
+      <div class="price">₹499<small>/month</small></div>
+      <ul><li>Everything in Free</li><li>2 Therapist Video Sessions</li><li>Unlimited Journal & AI Chat</li><li>Progress Report PDF Download</li><li>Meditation + Breathing Library</li><li>Priority Support</li></ul>
+      <button class="btn-pay popular-btn" onclick="selectPlan('Premium', 499)">Upgrade to Premium</button>
+    </div>
+    <div class="plan">
+      <h3>Pro Care</h3>
+      <div class="price">₹999<small>/month</small></div>
+      <ul><li>Everything in Premium</li><li>6 Therapist Sessions</li><li>1 Family Member Free</li><li>24x7 Therapist Chat</li><li>Personalized Wellness Plan</li><li>Emergency Support</li></ul>
+      <button class="btn-pay" onclick="selectPlan('Pro Care', 999)">Go Pro</button>
+    </div>
+  </div>
+  <div class="success" id="successBox">
+    <h2 style="color:#2e7d32">✅ Payment Successful!</h2>
+    <p id="successMsg"></p>
+    <p style="font-size:13px;color:#666">Receipt sent. Transaction ID: <span id="txnId"></span></p>
+    <button onclick="location.href='dashboard.html'" style="padding:10px 20px;background:#28a745;color:white;border:none;border-radius:6px;margin-top:15px">Go to Dashboard</button>
+    <button onclick="location.href='progress-report.html'" style="padding:10px 20px;background:#007bff;color:white;border:none;border-radius:6px;margin-top:10px">View Progress Report</button>
+  </div>
+</div>
+<script>
+const lastAppointment = JSON.parse(localStorage.getItem("lastAppointment") || "null");
+if(lastAppointment){
+  document.getElementById("appointmentBox").style.display="block";
+  document.getElementById("appointmentDetails").innerHTML = `Doctor: <b>${lastAppointment.doctor}</b><br>Date: ${lastAppointment.date} at ${lastAppointment.time}<br>Type: ${lastAppointment.type}`;
+  let price = 800;
+  if(lastAppointment.type.includes("500")) price=500;
+  if(lastAppointment.type.includes("300")) price=300;
+  if(lastAppointment.type.includes("1000")) price=1000;
+  document.getElementById("payAmount").innerText = "₹"+price;
+}
+function selectPlan(planName, amount=0){
+  if(planName==="Free"){ alert("You are already on Free plan"); return; }
+  payNow('subscription', planName, amount);
+}
+async function payNow(type, planName="", amount=0){
+  let payAmt = amount;
+  let description = "";
+  let userEmail = localStorage.getItem('mm_userEmail') || localStorage.getItem('username') || 'demo@mind.com';
+  if(type==="appointment"){
+    const amtText = document.getElementById("payAmount").innerText;
+    payAmt = parseInt(amtText.replace("₹",""));
+    description = `Appointment with ${lastAppointment.doctor}`;
+  } else {
+    description = `${planName} Subscription - MindMitra`;
+  }
+  const confirmPay = confirm(`Pay ₹${payAmt} for ${description} ?`);
+  if(confirmPay){
+    const txn = "TXN"+Date.now();
+    const payment = {id:txn, txn_id:txn, type:type, plan:planName||"Appointment", amount:payAmt, date:new Date().toISOString(), email:userEmail, status:"Success", description:description};
+    let payments = JSON.parse(localStorage.getItem("payments") || "[]");
+    payments.push(payment);
+    localStorage.setItem("payments", JSON.stringify(payments));
+    localStorage.setItem("currentPlan", planName || "Premium");
+    localStorage.setItem("lastPayment", JSON.stringify(payment));
+    if(type==="appointment" && lastAppointment){
+      lastAppointment.paymentStatus = "Paid";
+      lastAppointment.transactionId = txn;
+      localStorage.setItem("lastAppointment", JSON.stringify(lastAppointment));
+    }
+    try{
+      await fetch('http://localhost:3000/api/payment',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({email:userEmail, amount:payAmt, plan_type:planName||'appointment', txn_id:txn, status:'Success', description:description, payment_method:'UPI Demo'})
+      });
+    }catch(e){}
+    document.getElementById("successBox").style.display="block";
+    document.getElementById("successMsg").innerText = `You paid ₹${payAmt} for ${description}`;
+    document.getElementById("txnId").innerText = txn;
+    document.getElementById("successBox").scrollIntoView({behavior:"smooth"});
+    document.querySelector(".plans").style.display="none";
+  }
+}
+</script>
+</body>
+</html>
