@@ -1,0 +1,23 @@
+{
+  "name": "mindmitra-backend",
+  "version": "1.0.0",
+  "description": "MindMitra Mental Health - White Locked Backend with MySQL",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["mindmitra", "mental-health", "mysql"],
+  "author": "MindMitra Shikarpur",
+  "license": "ISC"
+}
